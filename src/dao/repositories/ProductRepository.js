@@ -10,7 +10,7 @@ class ProductRepository {
     }
     
     async addProduct(product){
-        const { title, description, code, price, stock, category, thumbnails } = product;
+        const { title, description, code, price, stock, category, thumbnails, owner } = product;
         try {
             if(!title || !description || !code || !price || !stock || ! category){
                 const errorInfo = generateProductsErrorInfo(product);
@@ -22,7 +22,7 @@ class ProductRepository {
                     code: ErrorCodes.INVALID_TYPES_ERROR
                 })
             }
-            const result = await this.productDao.createProduct(title, description, code, price, stock, category, thumbnails);
+            const result = await this.productDao.createProduct(title, description, code, price, stock, category, thumbnails, owner);
             //console.log(result);
             console.log(`Product created successfully.`);
             return result;

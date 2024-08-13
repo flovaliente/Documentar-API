@@ -14,12 +14,12 @@ productsRouter.get('/', productsController.getAllProducts);
 productsRouter.get('/:pid', productsController.getProductById);
 
 // -Add product
-productsRouter.post('/', uploader.array('thumbnails', 3), passport.authenticate("jwt", { session: false }), authorization('Admin'), productsController.addProduct);
+productsRouter.post('/', uploader.array('thumbnails', 3), passport.authenticate("jwt", { session: false }), authorization(['Admin', 'Premium']), productsController.addProduct);
 
 // -Update product
 productsRouter.put('/:pid', uploader.array('thumbnails', 3), passport.authenticate("jwt", { session: false }), authorization('Admin'), productsController.updateProduct);
 
 // -Delete product
-productsRouter.delete('/:pid', passport.authenticate("jwt", { session: false }), authorization('Admin'), productsController.deleteProduct);
+productsRouter.delete('/:pid', passport.authenticate("jwt", { session: false }), authorization(['Admin', 'Premium']), productsController.deleteProduct);
 
 export default productsRouter;

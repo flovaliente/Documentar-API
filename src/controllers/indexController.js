@@ -1,6 +1,9 @@
 import productService from "../services/productService.js";
 import cartService from "../services/cartService.js";
 import { generateProducts } from "../utils/fakerUtil.js";
+import userService from "../services/userService.js";
+import { transport } from "../utils/mailUtil.js";
+import { isValidPassword } from "../utils/functionsUtils.js";
 
 const welcome = async (req, res) => {
     try {
@@ -152,6 +155,103 @@ const loggertest = (req, res) => {
   res.send("Logger test completed!");
 }
 
+const unauthorized = async(req, res) => {
+  res.status(401).render('unauthorized', {
+    title: "Unhautorized",
+    style: "product.css"
+  });
+}
+
+const sendEmail = async (req, res) => {
+  try {
+    const result = await transport.sendMail({
+      from: "Valsaa <flovaliente143@gmail.com>",
+      to: "florcody@hotmail.com",
+      subject: "Correo de prueba",
+      html: `<div>
+                <h1>Welcome!</h1>
+                <p>We are testing!</p>
+              </div>`,
+    });
+
+    res.send({ status: "success", result });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send({ status: "error", message: "Error sending email." });
+  }
+};
+
+const recoverPasswordRequest = async(req, res) => {
+  res.render('recoverPassword', {
+    title: "Valsaa | Recover Password",
+    style: "recoverPass.css"
+  });
+}
+
+const recoverPassword = async(req, res) => {
+  const  email = "flovaliente143@gmail.com";
+  try {
+    console.log('Email: ', email);
+    const result = await userService.sendRecoveryEmail(email);
+    res.send({
+      status: 'success',
+      result
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send('Error.');
+  }
+}
+
+const recoverToken = async (req, res) => {
+  const { token } = req.params;
+  try {
+    console.log('Token en recoveryToken: ', token);
+    const user = await userService.findUserByToken(token);
+    console.log('User el recoveryToken: ', user);
+    if(!user){
+      return res.status(404).render('recoverPassword', { error: 'Invalid token' });
+    }
+    res.render('changePassword', {
+      title: 'Valsaa | Change password',
+      style: 'recoverPass.css',
+      token
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).render('recoverPassword', { error: "Error en recoverToken: " + error.message });
+  }
+}
+
+const changePassword = async (req, res) => {
+  const { token, password } = req.body;
+  try {
+    console.log("Token en changePassword: ", token);
+    console.log("Password en changePassword: ", password);
+
+    const user = await userService.findUserByToken(token);
+
+    if(isValidPassword(user, password)){
+      res.status(409).send({
+        status: 'error',
+        message: 'New password cannot be the same as the old one.'
+      });
+    };
+    
+    await userService.updatePassword(user._id, password);
+    res.status(200).send({
+      status: 'success',
+      message: 'Password changed successfully!'
+    });
+  } catch (error) {
+    req.logger.error(error.message);
+    res.status(500).send({
+      status: 'error',
+      message: "Errir en changePassword: " + error.message
+    });
+  }
+}
+
 export default {
     welcome,
     register,
@@ -161,5 +261,11 @@ export default {
     login,
     user,
     mockingproducts,
-    loggertest
+    loggertest,
+    unauthorized,
+    sendEmail,
+    recoverPasswordRequest,
+    recoverPassword,
+    recoverToken,
+    changePassword
 };

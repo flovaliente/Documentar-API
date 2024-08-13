@@ -1,4 +1,5 @@
 import productService from '../services/productService.js';
+import { checkOwnership } from '../utils/functionsUtils.js';
 
 const buildResponse = (data) => { 
     return {
@@ -65,6 +66,14 @@ const addProduct = async (req, res) => {
     }
 
     try {
+        let owner;
+        if (req.user.user.role == "Premium"){
+            owner = req.user.user.email; 
+        }else{
+            owner = "Admin";
+        }
+        req.body.owner = owner;
+
         const result = await productService.addProduct(req.body);
         
         res.status(200).send({
@@ -107,11 +116,28 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
     try{
         const { pid } = req.params;
-        await productService.deleteProduct(pid);
-        res.status(200).send({
-            status: 'Product successfully deleted.'
-        });
-        req.logger.info('Deleted product id: ', pid);
+        const email = req.user.user.email;
+        let deleteProdPermission = true;
+
+        //Si el user es Premium, me fijo si es creador del producto
+        if (req.user.user.role === "Premium") {
+            deleteProdPermission = await checkOwnership(pid, email);
+        }
+
+        if(deleteProdPermission){
+            await productService.deleteProduct(pid);
+            res.status(200).send({
+                status: 'Product successfully deleted.'
+            });
+            req.logger.info('Product successfully deleted.');
+        }else{
+            req.logger.warning('Permission denied.')
+            return res.status(403).send({
+                status: "error",
+                message: "You dont have permission to delete this product.",
+            });
+        }
+        
     }catch (error){
         res.status(404).send({
             status: 'error',

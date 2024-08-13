@@ -67,6 +67,31 @@ const current = (req, res) =>{
     });
 }
 
+//Preguntar si deberia actualizar el token o no, porque no me lo actualiza bien creo
+const switchRole = async (req, res) =>{
+    try {
+        const { uid } = req.params;
+        const user = await userService.getUser(uid);
+        const role = user.role == 'Premium' ? 'User' : 'Premium';
+
+        const accessToken = await userService.switchRole(uid, role);
+        res.cookie("accessToken", accessToken, { maxAge: 60*60*1000, httpOnly: true });//Guardo el token en la cookie
+
+        res.status(200).send({
+            status: 'success',
+            newToken: accessToken 
+        });
+    } catch (error) {
+        req.logger.error('Error updating role.');
+        res.status(500).send({
+            status: 'error',
+            message: error.message
+        });
+    }
+}
+
+
+
 export default {
     register,
     failRegister,
@@ -75,5 +100,6 @@ export default {
     logout,
     github,
     githubcallback,
-    current
+    current,
+    switchRole
 };

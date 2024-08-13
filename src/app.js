@@ -7,6 +7,8 @@ import mongoStore from 'connect-mongo';//
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUiExpress from "swagger-ui-express";
 
 import productsRouter from './routers/productsRouter.js';
 import cartRouter from './routers/cartRouter.js';//
@@ -68,6 +70,21 @@ app.use('/api/products', productsRouter);//
 app.use('/api/carts', cartRouter);//
 app.use('/api/message', chatRouter);//
 app.use('/api/ticket', ticketRouter);
+
+//Swagger
+const swaggerOptions = {
+  definition: {
+    openapi: "3.1.0",
+    info: {
+      title: "VALSAA",
+      version: "1.0.0",
+      description: "API for VALSAA Store",
+    },
+  },
+  apis: [`${__dirname}/../docs/**/*.yaml`],
+};
+const specs = swaggerJsdoc(swaggerOptions);
+app.use("/api/docs", swaggerUiExpress.serve, swaggerUiExpress.setup(specs));
 
 /*app.use((error, req, res, next) => {
   const message = `Ocurrio un error: ${error.message}`;

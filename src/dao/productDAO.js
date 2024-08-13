@@ -1,9 +1,9 @@
 import productModel from "./models/productModel.js";
 
 export default class ProductDao{
-    createProduct = async (title, description, code, price, stock, category, thumbnails) =>{
+    createProduct = async (title, description, code, price, stock, category, thumbnails, owner) =>{
         try {
-            return await productModel.create({ title, description, code, price, stock, category, thumbnails: thumbnails ?? [] });
+            return await productModel.create({ title, description, code, price, stock, category, thumbnails: thumbnails ?? [], owner });
         } catch (error) {
             console.error(error.message);
             return null;

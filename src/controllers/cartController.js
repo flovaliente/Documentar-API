@@ -2,6 +2,7 @@ import cartService from '../services/cartService.js';
 import userService from '../services/userService.js';
 import productService from '../services/productService.js';
 import ticketService from '../services/ticketService.js';
+import { checkOwnership } from '../utils/functionsUtils.js';
 
 const createCart = async (req, res) => {
     try{
@@ -66,19 +67,41 @@ const updateQuantityCart = async (req, res) =>{
         console.error(error);
         res.status(400).send({
             status: 'error',
-            message: error.message}
-        );
+            message: error.message
+        });
     }
 }
 
+//Lo de no añadir su propio producto funciona
+//Preguntar si tendria que implementar que el usuario solo pueda agregar productos a su carrito
 const addToCart = async (req, res) => {
     try{
         const { cid, pid } = req.params;
-        await cartService.addToCart(cid, pid);
-        res.status(200).send({
-            status:'success',
-            message: 'Product successfully added to cart.'
-        });
+        const email = req.user.user.email;
+        let addToCartPermission = true;
+
+        if (req.user.user.role === "Premium") {
+            addToCartPermission = !await checkOwnership(pid, email);//Si el producto fue creado por el no le doy permiso
+        }
+        console.log('Permiso: ', addToCartPermission);
+        if(addToCartPermission){
+            await cartService.addToCart(cid, pid);
+            res.status(200).send({
+                status:'success',
+                message: 'Product successfully added to cart.'
+            });
+            req.logger.info('Product added to cart.');
+        }else{
+            res.status(403).send({
+                status: 'error',
+                message: 'You cannot add your own product to cart.'
+            });
+            req.logger.info('Permission denied.');
+        }
+
+
+        
+        
     }catch (error){
 
         res.status(400).send({
@@ -94,7 +117,8 @@ const deleteCart = async (req, res) =>{
         const { cid } = req.params;
         await cartService.deleteCart(cid);
         res.status(200).send({
-            status: 'Cart successfully deleted.'
+            status: 'success',
+            message: 'Cart successfully deleted.'
         });
     } catch (error) {
         res.status(404).send({
@@ -110,7 +134,8 @@ const deleteProdFromCart = async (req, res) =>{
         const { cid, pid } = req.params;
         await cartService.deleteProdFromCart(cid, pid);
         res.status(200).send({
-            status: 'Product successfully deleted from cart.'
+            status: 'success',
+            message: 'Product successfully deleted from cart.'
         });
     } catch (error) {
         req.logger.warning('Error deleting product from cart.');

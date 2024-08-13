@@ -23,4 +23,19 @@ router.get('/mockingproducts', indexController.mockingproducts);
 
 router.get('/loggertest', indexController.loggertest);
 
+router.get('/unauthorized', indexController.unauthorized);
+
+//Send email
+router.get("/send/mail", indexController.sendEmail);
+
+//Recover password request
+router.get('/recover', indexController.recoverPasswordRequest);
+
+//Recover password
+router.post('/recover', indexController.recoverPassword);
+
+router.get('/recover/:token', indexController.recoverToken);
+
+router.post('/changePassword', indexController.changePassword);
+
 export default router;

@@ -1,6 +1,7 @@
 import { isValidPassword } from '../../utils/functionsUtils.js';
 import UserDao from "../userDAO.js";
 
+
 class UserRepository{
     constructor(){
         this.userDao = new UserDao();
@@ -50,12 +51,36 @@ class UserRepository{
 
     async findUserByEmail(email) {
         try {
-          const result = await this.userDao.findUserByEmail(email);
-          return result;
+            const result = await this.userDao.findUserByEmail(email);
+            return result;
         } catch (error) {
-          console.error(error);
+            console.error(error);
         }
-      }
+    }
+
+    async findUserByToken(token){
+        try {
+            return await this.userDao.findUserByToken(token);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async switchRole(uid, newRole){
+        try {
+            return await this.userDao.switchRole(uid, newRole);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async updatePassword(uid, newPassword){
+        try {
+            return await this.userDao.updatePassword(uid, newPassword);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 }
 
 export default UserRepository;

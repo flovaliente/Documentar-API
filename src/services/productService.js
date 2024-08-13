@@ -12,8 +12,9 @@ const getProducts = async (page, limit, category, query, sort) =>{
         }
 
         if(query){
-            query = JSON.parse(query);
+            //query = JSON.parse(query);
             criteria.query = query;
+            console.log(criteria);
         }
 
         return await productManager.getProducts(criteria, options);
